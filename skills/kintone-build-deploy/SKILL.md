@@ -42,7 +42,10 @@ kintone-plugin-uploader ./plugin.zip   →  cli-kintone plugin upload --input pl
 ## JavaScript / CSS カスタマイズ
 
 - アップロードは `cli-kintone`（旧 `customize-uploader` 相当の機能）で行う。
-- 認証情報（接続先 URL・ログイン名/パスワード or API トークン）は `.env` 等に分離し、**リポジトリに含めない**。
+- **⚠️ カスタマイズ適用（`customize.json` の更新）は API トークンでは弾かれる（403 `GAIA_NO01`、実機確認済み）。
+  パスワード認証が必要。** cli-kintone / 旧 customize-uploader がパスワード認証を使うのはこのため。
+  → 自動化で API トークンしか持たせていない環境では、ここだけログイン名/パスワードか、管理画面での手動アップロードになる。
+- 認証情報（接続先 URL・ログイン名/パスワード）は `.env` 等に分離し、**リポジトリに含めない**。
 - バンドルする場合は、kintone に登録する**ファイルの読み込み順**に注意（依存するライブラリを先に）。
 
 ## 共通
