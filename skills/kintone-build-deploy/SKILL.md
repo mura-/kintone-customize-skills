@@ -10,6 +10,11 @@ description: >-
 
 書き終えたコードを kintone に届けるフェーズの手順。
 
+> **境界**：JS/CSS やプラグインを「アプリに**適用**する設定そのもの」は `customize.json` / `plugins.json`
+> という設定変更 API で、preview→deploy に乗る（→ **kintone-app-config** が担当）。
+> このスキルは **ローカルでの成果物づくり（plugin-packer でのパッケージング）** と、
+> **適用を代行するツール（customize-uploader 等の CLI）** の使い方に専念する。
+
 ## プラグイン
 
 - パッケージングは **`@kintone/plugin-packer`**（手動 zip しない）。

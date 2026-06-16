@@ -29,10 +29,10 @@
    │ kintone-        │ kintone-            │ kintone-         │
    │   customize     │   app-config        │   build-deploy   │
    ├─────────────────┼─────────────────────┼──────────────────┤
-   │ JS API          │ fields / layout /   │ PluginPacker     │
-   │ REST(データ)     │   settings 操作      │ customize-       │
-   │ セキュリティ      │ → deployApp 必須     │   uploader       │
-   │ REST↔JS 使い分け │ preview 環境 / 権限   │ 検証→本番反映     │
+   │ JS API          │ 設定変更API全般      │ PluginPacker     │
+   │ REST(データ)     │ form/一覧/権限/通知   │ customize-       │
+   │ セキュリティ      │ 適用(customize/plugin)│   uploader       │
+   │ REST↔JS 使い分け │ → preview→deploy     │ 検証→本番反映     │
    └─────────────────┴─────────────────────┴──────────────────┘
         書くとき同時に効く        書く場面とは別トリガー    書き終えた後のフェーズ
 ```
@@ -50,7 +50,8 @@ kintone-customize/
   SKILL.md                  ← 薄い索引。冒頭に「REST or JS APIどっち？」判断フロー（割らない知識）
   references/
     javascript-api.md       ← setFieldShown / setFieldStyle / イベント / getSpaceElement
-                               （getFieldElement で DOM 直叩きは非推奨）
+                               （スタイルは setFieldStyle[2026/2 追加の新API]優先。
+                                 getFieldElement/getSpaceElement 自体は非推奨ではない）
     rest-api.md             ← レコード操作。一括処理 / cursor / upsert / 並列更新NG
                                外部API: kintone.proxy()（認証情報を伴うとき一択）
                                User-Agent はフロントでは設定不可（Node外部連携時のみ）
@@ -68,20 +69,26 @@ kintone-customize/
 
 ---
 
-## ② kintone-app-config — アプリ・フォーム設定を API で操作 ★新設
+## ② kintone-app-config — アプリ設定を API で操作
 
-- **description / 発火**：「アプリにフィールドを追加して / フォームレイアウトを組んで / アプリ設定を一括構築・移行して」
-- **担当**：アプリ定義（メタ）の API 操作。アプリ構築・移行タスク
-- **非担当（→他Skill）**：レコードの中身（→①の rest-api）、カスタマイズコード（→①）
+- **description / 発火**：「アプリにフィールドを追加して / 一覧やプロセス管理を設定して / アクセス権を設定して /
+  JS・CSS をアプリに適用して / アプリ設定を一括構築・移行して」
+- **担当**：**preview→deploy に乗る設定変更 API 全般**。フォームだけでなく、一覧・プロセス管理・通知・
+  アクセス権・グラフ・**カスタマイズ適用（customize.json）・プラグイン適用（plugins.json）** まで含む。
+- **非担当（→他Skill）**：レコードの中身（→①の rest-api）、カスタマイズコードの中身（→①）、
+  ローカルのビルド/パッケージング・customize-uploader ツール（→③）
 
 ```
 kintone-app-config/
-  SKILL.md                  ← preview/deploy フローを最初に必ず読ませる
+  SKILL.md                  ← preview/deploy フロー＋設定変更API全体マップを最初に読ませる
   references/
-    form-fields.md          ← /preview/app/form/fields.json（フィールド定義）
-    form-layout.md          ← /preview/app/form/layout.json（レイアウト）
-    app-settings.md         ← /preview/app/settings.json ほか各種設定
+    form.md                 ← form/fields.json・layout.json（フィールド/レイアウト）
+    views-process.md        ← views.json（一覧）/ status.json（プロセス管理）
+    notifications-acl.md    ← notifications/*・acl（アプリ/レコード/フィールドの3層）
+    customize-plugins.md    ← customize.json（JS/CSS適用）/ plugins.json（プラグイン適用）
 ```
+
+> 個別 API の引数は公式ドキュメントへ（写経しない）。Skill は「どの設定も preview→deploy・共通の罠」の地図に徹する。
 
 ### 🔴 最重要・最頻ハマりポイント
 - 設定変更系 API は **`/preview/`（テスト環境）にしか効かない**。
@@ -112,6 +119,8 @@ kintone-build-deploy/
 | フィールドの**値**を画面で変える | ① JS API（`record[code].value`） | ② 設定APIを叩く |
 | フィールドの**定義**を追加・変更する | ② app-config（fields.json→deploy） | ① JS API でやろうとする |
 | 外部 API を呼ぶ（認証あり） | ① rest-api（`kintone.proxy()`） | 直 `fetch` |
+| JS/CSS を**アプリに適用する設定** | ② app-config（`customize.json`→deploy） | ③ の話だと思い込む |
+| JS/CSS を**ビルド/アップロードする操作** | ③ build-deploy（customize-uploader） | 手で customize.json を叩く |
 | プラグインを zip にする | ③ build-deploy（PluginPacker） | 手動 zip |
 
 ---
