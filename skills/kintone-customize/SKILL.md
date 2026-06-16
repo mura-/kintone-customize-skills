@@ -15,6 +15,27 @@ AI が生成しがちなコードには、Web 開発としては自然でも **k
 
 ## 必ず守る作法（DO）
 
+### イベントモデル（カスタマイズの起点）
+- カスタマイズは **`kintone.events.on(イベント名, handler)` のイベント駆動**で書く。
+- 主要イベント：
+  - 表示：`app.record.{create|edit|detail|index}.show`
+  - 値変更：`app.record.{create|edit}.change.<フィールドコード>`（**`.change` は必ずフィールドコードを付ける**。付けないと発火しない）
+  - 保存：`app.record.{create|edit}.submit` / `.submit.success`
+- **ハンドラは最後に `event` を返す**（戻り値で `event.record` を書き換える／スタイル適用する）。
+  `submit` で `event.error` にメッセージを入れると保存を止められる。
+- 画面ごとに使えるイベント・API が違う。**存在しないイベント名を生成しない**（公式のイベント一覧と照合）。
+
+### フィールド型ごとの値の構造（AI が最頻で誤解する）
+`record[フィールドコード].value` の形は**フィールド型ごとに違う**。型を確認してから扱う：
+- **文字列で来る**：`NUMBER` / `CALC`（例 `"1500000"`）→ **数値比較する前に `Number()` 変換**（実機で確認済み）
+- 選択肢の文字列：`DROP_DOWN` / `RADIO_BUTTON`
+- **配列**：`CHECK_BOX` / `MULTI_SELECT` / `CATEGORY`
+- **オブジェクトの配列**（`code`/`name`）：`USER_SELECT` / `ORG_SELECT` / `GROUP_SELECT` / `STATUS_ASSIGNEE`
+- **行の配列**：`SUBTABLE`（各行の `value.<内側コード>.value` を辿る）
+- 文字列(ISO)：`DATE` / `TIME` / `DATETIME` / `CREATED_TIME` / `UPDATED_TIME`
+- ファイルオブジェクトの配列：`FILE`
+- ありがち誤り：NUMBER を数値だと思う／ユーザー選択を文字列だと思う／サブテーブルを単純配列だと思う。
+
 ### API 呼び出し
 - フロント（ブラウザ実行）からの REST API は **`kintone.api()`** か **`@kintone/rest-api-client`** を使う。
   - rest-api-client を使うなら URL 組み立ては不要。素の `kintone.api()` を使う場合のみ、URL は文字列結合せず **`kintone.api.url()`** で組み立てる。
