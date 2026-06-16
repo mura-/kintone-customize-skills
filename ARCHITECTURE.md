@@ -29,9 +29,9 @@
    │ kintone-        │ kintone-            │ kintone-         │
    │   customize     │   app-config        │   build-deploy   │
    ├─────────────────┼─────────────────────┼──────────────────┤
-   │ JS API          │ 設定変更API全般      │ PluginPacker     │
-   │ REST(データ)     │ form/一覧/権限/通知   │ customize-       │
-   │ セキュリティ      │ 適用(customize/plugin)│   uploader       │
+   │ JS API          │ 設定変更API全般      │ cli-kintone      │
+   │ REST(データ)     │ form/一覧/権限/通知   │ (plugin pack/    │
+   │ セキュリティ      │ 適用(customize/plugin)│  upload)         │
    │ REST↔JS 使い分け │ → preview→deploy     │ 検証→本番反映     │
    └─────────────────┴─────────────────────┴──────────────────┘
         書くとき同時に効く        書く場面とは別トリガー    書き終えた後のフェーズ
@@ -106,8 +106,9 @@ kintone-app-config/
 
 ```
 kintone-build-deploy/
-  SKILL.md                  ← @kintone/plugin-packer / customize-uploader の手順
-                               本番反映前に検証環境で動作確認
+  SKILL.md                  ← cli-kintone（plugin init/pack/upload・カスタマイズ配布）の手順
+                               ※旧ツール(plugin-packer/customize-uploader)は2026年8月メンテ終了
+                               .ppk と plugin ID / 検証→本番反映 / 依存脆弱性
 ```
 
 ---
@@ -120,8 +121,8 @@ kintone-build-deploy/
 | フィールドの**定義**を追加・変更する | ② app-config（fields.json→deploy） | ① JS API でやろうとする |
 | 外部 API を呼ぶ（認証あり） | ① rest-api（`kintone.proxy()`） | 直 `fetch` |
 | JS/CSS を**アプリに適用する設定** | ② app-config（`customize.json`→deploy） | ③ の話だと思い込む |
-| JS/CSS を**ビルド/アップロードする操作** | ③ build-deploy（customize-uploader） | 手で customize.json を叩く |
-| プラグインを zip にする | ③ build-deploy（PluginPacker） | 手動 zip |
+| JS/CSS を**ビルド/アップロードする操作** | ③ build-deploy（`cli-kintone`） | 旧 customize-uploader / 手で customize.json |
+| プラグインを zip にする | ③ build-deploy（`cli-kintone plugin pack`） | 旧 plugin-packer / 手動 zip |
 
 ---
 
@@ -139,6 +140,10 @@ kintone-build-deploy/
 - `kintone.proxy()` … 「必ず」ではなく「認証情報を伴う/CORS を越えるとき」に補正
 - `getFieldElement()` / `getSpaceElement()` … 非推奨ではない（要素取得の正当な API）。
   スタイル設定だけ `setFieldStyle()`（2026年2月追加の新 API）を優先、に補正
+- 開発 CLI … `plugin-packer` / `customize-uploader` 等は 2026年8月メンテ終了。`cli-kintone` に統合、に補正
+
+> 「AI の学習データは 2026年の変化に追いついていない」共通パターン：
+> ① `setFieldStyle`（2026/2 追加）、③ `cli-kintone`（2026/8 統合）。新しい API/ツールほど Skill で明示する価値が高い。
 
 継続ウォッチ：
-- 新しく追加された JS API（AI の学習データに無いもの）を随時取り込む
+- 新しく追加された JS API・CLI・ツール（AI の学習データに無いもの）を随時取り込む
