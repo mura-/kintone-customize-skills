@@ -29,10 +29,14 @@ AI が生成しがちなコードには、Web 開発としては自然でも **k
 - 同一レコードへの **並列更新をしない**（競合の原因）。直列実行か `upsert` を使う。
 
 ### 表示制御・スタイル変更
-- フィールドの表示/非表示・スタイル変更は **公式 API** を使う：
-  - `kintone.app.record.setFieldShown()`
-  - `kintone.app.record.setFieldStyle()`（= setStyle 系）
-- **`getFieldElement()` で DOM を取って直接いじるのは非推奨。** `id` / `class` 属性に依存した DOM 操作も禁止。
+- フィールドの表示/非表示は `kintone.app.record.setFieldShown()`。
+- フィールドの**スタイル設定**は **`kintone.app.record.setFieldStyle()` / `getFieldStyle()`** を使う。
+  - ⚠️ **これは 2026年2月追加の新しい API（モバイルは 3月）。** AI の学習データに含まれていない可能性が高く、
+    知らずに「`getFieldElement()` で要素を取って CSS を直接当てる」古い書き方をしがち。**明示的に setFieldStyle を使わせる。**
+- `getFieldElement()` で取得した要素に **CSS を直接当てる / DOM を書き換えるのは避ける**（setFieldStyle で代替できる範囲では使わない）。
+- ただし **`getFieldElement()` / `getSpaceElement()` 自体は要素取得の正当な API で、非推奨ではない。**
+  setFieldStyle で扱えない独自 UI の配置・操作では使ってよい。
+- `id` / `class` 属性に依存した DOM 操作はしない（kintone の内部 DOM 構造は変わりうる）。
 
 ### アプリ設定の取得
 - アプリのフィールド・レイアウト情報は **`fields.json` / `layout.json`**（フォーム設定取得 API）を使う。
@@ -104,5 +108,6 @@ AI が生成しがちなコードには、Web 開発としては自然でも **k
 
 ---
 ※ 知識源：kintone 公式のセキュアコーディングガイドライン・コーディングガイドライン、
-および生成AIでkintoneカスタマイズを書く際のベストプラクティス（新API移行：getFieldElement→setStyle系 /
-form.json→fields.json・layout.json を含む）。導入先の事情に依存しない、汎用の作法のみをまとめている。
+および生成AIでkintoneカスタマイズを書く際のベストプラクティス（スタイル設定は setFieldStyle を優先 /
+フォーム設定は form.json ではなく fields.json・layout.json を使う 等の新しめの作法を含む）。
+導入先の事情に依存しない、汎用の作法のみをまとめている。

@@ -122,8 +122,14 @@ kintone-build-deploy/
 - Cursor 等向けに `.mdc` / `AGENTS.md` 版も併置すると「どのエージェントでも使える」が売りになる。
 - developers-site-jp（ドキュメントサイトのリポジトリ）には**コミットしない**。ここは作業場として借りているだけ。
 
-## 今後の棚卸し（賞味期限チェック継続）
+## 棚卸しログ（賞味期限チェック）
 
-- `getSpaceElement()` は今も正攻法 → 「DOM操作は全部ダメ」と読めないようにする
-- `getSpaceElement()` 以外の DOM 系の可否を精査
-- `User-Agent` / `kintone.proxy()` / `'use strict'`・IIFE は補正済み
+補正済み：
+- `'use strict'` / IIFE … ES Module 評価なら不要、素の .js 直アップ時のみ、に補正
+- `User-Agent` … フロントでは禁止ヘッダーで設定不可、Node 外部連携時のみ、に補正
+- `kintone.proxy()` … 「必ず」ではなく「認証情報を伴う/CORS を越えるとき」に補正
+- `getFieldElement()` / `getSpaceElement()` … 非推奨ではない（要素取得の正当な API）。
+  スタイル設定だけ `setFieldStyle()`（2026年2月追加の新 API）を優先、に補正
+
+継続ウォッチ：
+- 新しく追加された JS API（AI の学習データに無いもの）を随時取り込む

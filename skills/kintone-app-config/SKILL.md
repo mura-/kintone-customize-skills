@@ -20,7 +20,8 @@ description: >-
 
 ## 主なエンドポイント
 
-- フィールド定義：`POST/PUT/DELETE /k/v1/preview/app/form/fields.json`
+- アプリ新規作成：`POST /k/v1/preview/app.json`（preview に作られる。最後に deploy で運用化）
+- フィールド定義：追加 `POST` / 更新 `PUT` / 削除 `DELETE` `/k/v1/preview/app/form/fields.json`
 - フォームレイアウト：`PUT /k/v1/preview/app/form/layout.json`
 - 一般設定など：`PUT /k/v1/preview/app/settings.json` ほか
 - 反映：`POST /k/v1/preview/app/deploy.json` → ステータスは `GET /k/v1/preview/app/deploy.json` で確認
@@ -28,6 +29,9 @@ description: >-
 ## 注意
 
 - 変更を積んでから最後に一度 deploy。フィールド単位で deploy しない。
+- **deploy は非同期。** 完了前に次の設定変更を投げると失敗する。`GET .../deploy.json` で `SUCCESS` を待ってから次へ。
+- **revision（楽観ロック）に注意。** 設定変更系 API は直前に取得した revision とズレると失敗する。
+  チェックを省くなら `revision: -1` を渡す。連続変更時の競合に気をつける。
 - リネーム・コード変更は依存（計算式・カスタマイズ・他フィールド参照）を壊しやすい。影響範囲を確認してから。
 - 破壊的変更の前にアプリ設定をエクスポート/バックアップしておく。
 
